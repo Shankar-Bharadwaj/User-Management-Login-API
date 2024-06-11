@@ -1,4 +1,4 @@
-import graphene, graphql_jwt
+import graphene
 from graphene_django import DjangoObjectType
 from oauth2_provider.models import AccessToken
 from .models import ExtendUser
@@ -18,6 +18,7 @@ class Query(graphene.ObjectType):
     def resolve_all_users(root, info):
         return ExtendUser.objects.all()
     
+
     def resolve_logged_in_user(root, info):
         request = info.context
         token = request.META.get('HTTP_AUTHORIZATION')
