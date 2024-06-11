@@ -44,7 +44,7 @@ INSTALLED_APPS = [
 
     # third-party apps
     "graphene_django",
-    "graphql_jwt.refresh_token.apps.RefreshTokenConfig",
+    'oauth2_provider',
 
     # own apps
     'users',
@@ -58,6 +58,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
+    'oauth2_provider.middleware.OAuth2ExtraTokenMiddleware',
 ]
 
 ROOT_URLCONF = 'user_management.urls'
@@ -135,21 +137,23 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 GRAPHENE = {
     "SCHEMA": "users.schema.schema",
-    "MIDDLEWARE": [
-        "graphql_jwt.middleware.JSONWebTokenMiddleware",
-    ],
 }
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "graphql_jwt.backends.JSONWebTokenBackend",
+    "oauth2_provider.backends.OAuth2Backend",
 ]
 
 AUTH_USER_MODEL = 'users.ExtendUser'
 
-GRAPHQL_JWT = {
-    "JWT_VERIFY_EXPIRATION": True,
-    "JWT_LONG_RUNNING_REFRESH_TOKEN": True,
-    "JWT_EXPIRATION_DELTA": timedelta(minutes=5),
-    "JWT_REFRESH_EXPIRATION_DELTA": timedelta(days=7),
+LOGIN_URL = '/admin/login/'
+
+OAUTH2_PROVIDER = {
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 600,
+    'REFRESH_TOKEN_EXPIRE_SECONDS': 86400,
+    'SCOPES': {
+        'read': 'Read scope', 
+        'write': 'Write scope', 
+        'groups': 'Access to your groups'
+    }
 }

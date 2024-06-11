@@ -1,7 +1,8 @@
 import graphene, graphql_jwt
 from graphene_django import DjangoObjectType
-from graphql_jwt.decorators import login_required
+from oauth2_provider.models import AccessToken
 from .models import ExtendUser
+from django.utils import timezone
 
 
 class ExtendUserType(DjangoObjectType):
@@ -11,15 +12,31 @@ class ExtendUserType(DjangoObjectType):
 
 
 class Query(graphene.ObjectType):
-    user = graphene.List(ExtendUserType)
-    logged_in = graphene.Field(ExtendUserType)
+    all_users = graphene.List(ExtendUserType)
+    logged_in_user = graphene.Field(ExtendUserType)
     
-    def resolve_user(root, info):
+    def resolve_all_users(root, info):
         return ExtendUser.objects.all()
     
-    @login_required
-    def resolve_logged_in(root, info):
-        return info.context.user
+    def resolve_logged_in_user(root, info):
+        request = info.context
+        token = request.META.get('HTTP_AUTHORIZATION')
+        # print(token)
+
+        if token is None:
+            raise Exception("No access token provided")
+        
+        token = token.split()[1]
+
+        try:
+            access_token = AccessToken.objects.get(token=token)
+        except AccessToken.DoesNotExist:
+            raise Exception("Invalid access token")
+
+        if access_token.expires < timezone.now():
+            raise Exception("Access token has expired")
+
+        return access_token.user
     
 
 class CreateUser(graphene.Mutation):
@@ -40,9 +57,5 @@ class CreateUser(graphene.Mutation):
 
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
-    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
-    verify_token = graphql_jwt.Verify.Field()
-    refresh_token = graphql_jwt.Refresh.Field()
-    revoke_token = graphql_jwt.Revoke.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
