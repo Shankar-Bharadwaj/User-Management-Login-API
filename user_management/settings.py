@@ -157,3 +157,4 @@ OAUTH2_PROVIDER = {
         'groups': 'Access to your groups'
     }
 }
+    
