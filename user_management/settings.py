@@ -44,10 +44,20 @@ INSTALLED_APPS = [
 
     # third-party apps
     "graphene_django",
+<<<<<<< HEAD
     'oauth2_provider',
 
     # own apps
     'users',
+=======
+    "oauth2_provider",
+
+    # own apps
+    'authentication',
+    'users',
+    'merchants',
+    'products',
+>>>>>>> 415bee1 (Add oauth, users, merchants, products along with CRUD operations)
 ]
 
 MIDDLEWARE = [
@@ -136,7 +146,11 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 GRAPHENE = {
+<<<<<<< HEAD
     "SCHEMA": "users.schema.schema",
+=======
+    "SCHEMA": "user_management.schema.schema",
+>>>>>>> 415bee1 (Add oauth, users, merchants, products along with CRUD operations)
 }
 
 AUTHENTICATION_BACKENDS = [
@@ -144,7 +158,11 @@ AUTHENTICATION_BACKENDS = [
     "oauth2_provider.backends.OAuth2Backend",
 ]
 
+<<<<<<< HEAD
 AUTH_USER_MODEL = 'users.ExtendUser'
+=======
+AUTH_USER_MODEL = 'authentication.UserManagement'
+>>>>>>> 415bee1 (Add oauth, users, merchants, products along with CRUD operations)
 
 LOGIN_URL = '/admin/login/'
 
@@ -157,4 +175,13 @@ OAUTH2_PROVIDER = {
         'groups': 'Access to your groups'
     }
 }
+<<<<<<< HEAD
     
+=======
+
+# OAUTH2_PROVIDER = {
+#     'RESOURCE_SERVER_INTROSPECTION_URL': 'http://127.0.0.1:8000/o/introspect/',
+#     'RESOURCE_SERVER_INTROSPECTION_CREDENTIALS': ('ZuqYbGTG4GMoVIDU7juU10REHENUe5XsKuInOzG3',
+#                                                   'slxjFi7jmTPR2Kxh4wyyqUXfdMOXTT1xGjRvwd6FlzS0bd4uvWczrauE10hTqqKEDVNKNTVhAvY2fviYa153w8lcQmdr7StSsOktdF9850MQyp9egOmffSzkCE4R7Icz'),
+# }
+>>>>>>> 415bee1 (Add oauth, users, merchants, products along with CRUD operations)
