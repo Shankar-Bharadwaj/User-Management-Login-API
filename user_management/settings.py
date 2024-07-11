@@ -49,9 +49,14 @@ INSTALLED_APPS = [
     # own apps
     'authentication',
     'users',
-    'merchants',
-    'products',
+    'companies',
+    'branches',
+    'contacts',
+    'location',
+    'finance',
+    'features',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
