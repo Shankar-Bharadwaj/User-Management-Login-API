@@ -4,7 +4,6 @@ from branches.models import BranchDetail
 from authentication.models import UserManagement
 
 
-# Create your models here.
 class UserDetail(models.Model):
     user_id = models.OneToOneField(UserManagement, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=255)

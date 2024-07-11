@@ -1,8 +1,7 @@
 from django.db import models
-
-# Create your models here.
 from contacts.models import ContactDetail
 from companies.models import CompanyDetail
+
 
 class BranchDetail(models.Model):
     branch_id = models.AutoField(primary_key=True)

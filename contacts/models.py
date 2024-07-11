@@ -1,6 +1,6 @@
 from django.db import models
 
-# Create your models here.
+
 class ContactDetail(models.Model):
     contact_id = models.AutoField(primary_key=True)
     phone = models.CharField(max_length=255)

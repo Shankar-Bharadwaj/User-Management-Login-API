@@ -1,7 +1,7 @@
 from django.db import models
-
 from location.models import Country
 from features.models import AppFeatures
+
 
 class CompanyDetail(models.Model):
     company_id = models.AutoField(primary_key=True)

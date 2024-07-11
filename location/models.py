@@ -1,7 +1,6 @@
 from django.db import models
-
-# Create your models here.
 from finance.models import Currency
+
 
 class Country(models.Model):
     country_id = models.AutoField(primary_key=True)

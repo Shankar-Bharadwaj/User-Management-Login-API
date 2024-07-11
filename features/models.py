@@ -1,6 +1,6 @@
 from django.db import models
 
-# Create your models here.
+
 class AppFeatures(models.Model):
     feature_id = models.AutoField(primary_key=True)
     feature_name = models.CharField(max_length=255)
