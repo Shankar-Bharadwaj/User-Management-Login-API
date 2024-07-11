@@ -30,7 +30,7 @@ class UserManagement(AbstractBaseUser):
     calling_country = models.CharField(max_length=5)
     email = models.EmailField(unique=True)
     user_pin = models.CharField(max_length=255)
-    fcm_key = models.TextField()
+    fcm_key = models.TextField(null=True, blank=True)
     isPinResetRequested = models.BooleanField()
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -42,7 +42,7 @@ class UserManagement(AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['user_mobile', 'international_calling_code', 'calling_country', 'user_pin', 'fcm_key','isPinResetRequested']
+    REQUIRED_FIELDS = ['user_mobile', 'international_calling_code', 'calling_country', 'user_pin', 'isPinResetRequested']
 
 
     def __str__(self):              
