@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from oauth2_provider.views import TokenView
-from .models import UserManagement
+from .models import UserLogin
 from .utils import send_fcm_notification
 
 class CustomTokenView(TokenView):
@@ -11,8 +11,8 @@ class CustomTokenView(TokenView):
         fcm_key = request.POST.get('fcm_key')
         
         try:
-            user = UserManagement.objects.get(email=email)
-        except UserManagement.DoesNotExist:
+            user = UserLogin.objects.get(email=email)
+        except UserLogin.DoesNotExist:
             return JsonResponse({'error': 'Invalid email or password'}, status=400)
         
         # Check for existing FCM key

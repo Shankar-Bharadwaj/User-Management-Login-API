@@ -22,7 +22,7 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
-class UserManagement(AbstractBaseUser):
+class UserLogin(AbstractBaseUser):
     id = models.AutoField(primary_key=True)
     user_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     user_mobile = models.BigIntegerField()

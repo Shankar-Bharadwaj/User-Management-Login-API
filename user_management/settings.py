@@ -152,7 +152,7 @@ AUTHENTICATION_BACKENDS = [
     "oauth2_provider.backends.OAuth2Backend",
 ]
 
-AUTH_USER_MODEL = 'authentication.UserManagement'
+AUTH_USER_MODEL = 'authentication.UserLogin'
 
 LOGIN_URL = '/admin/login/'
 
