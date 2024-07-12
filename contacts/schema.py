@@ -9,10 +9,10 @@ class ContactDetailType(DjangoObjectType):
 
 
 class Query(graphene.ObjectType):
-    contact_details = graphene.List(ContactDetailType)
+    all_contact_details = graphene.List(ContactDetailType)
     contact_detail = graphene.Field(ContactDetailType, id=graphene.Int())
 
-    def resolve_contact_details(self, info, **kwargs):
+    def resolve_all_contact_details(self, info, **kwargs):
         return ContactDetail.objects.all()
 
     def resolve_contact_detail(self, info, id):
@@ -21,6 +21,8 @@ class Query(graphene.ObjectType):
 
 class CreateContactDetail(graphene.Mutation):
     contact_detail = graphene.Field(ContactDetailType)
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         phone = graphene.String()
@@ -50,6 +52,8 @@ class CreateContactDetail(graphene.Mutation):
 
 class UpdateContactDetail(graphene.Mutation):
     contact_detail = graphene.Field(ContactDetailType)
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         id = graphene.Int()
@@ -64,7 +68,10 @@ class UpdateContactDetail(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, id, phone, email, pincode, address1, area, city, state, country):
-        contact_detail = ContactDetail.objects.get(pk=id)
+        try:
+            contact_detail = ContactDetail.objects.get(pk=id)
+        except ContactDetail.DoesNotExist:
+            return UpdateContactDetail(ok=False, error="Contact with the given ID does not exist")
         contact_detail.phone = phone
         contact_detail.email = email
         contact_detail.pincode = pincode
@@ -78,16 +85,20 @@ class UpdateContactDetail(graphene.Mutation):
 
 
 class DeleteContactDetail(graphene.Mutation):
-    success = graphene.Boolean()
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         id = graphene.Int()
 
     @classmethod
     def mutate(cls, root, info, id):
-        contact_detail = ContactDetail.objects.get(pk=id)
+        try:
+            contact_detail = ContactDetail.objects.get(pk=id)
+        except ContactDetail.DoesNotExist:
+            return UpdateContactDetail(ok=False, error="Contact with the given ID does not exist")
         contact_detail.delete()
-        return DeleteContactDetail(success=True)
+        return DeleteContactDetail(ok=True)
 
 
 class Mutation(graphene.ObjectType):

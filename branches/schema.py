@@ -23,6 +23,8 @@ class Query(graphene.ObjectType):
 
 class CreateBranchDetail(graphene.Mutation):
     branch_detail = graphene.Field(BranchDetailType)
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         company_id = graphene.Int()
@@ -39,9 +41,9 @@ class CreateBranchDetail(graphene.Mutation):
             company = CompanyDetail.objects.get(pk=company_id)
             contact = ContactDetail.objects.get(pk=contact_id)
         except CompanyDetail.DoesNotExist:
-            raise Exception("Company with the given ID does not exist.")
+            return CreateBranchDetail(ok=False, error="Company with the given ID does not exist.")
         except ContactDetail.DoesNotExist:
-            raise Exception("Contact with the given ID does not exist.")
+            return CreateBranchDetail(ok=False, error="Contact with the given ID does not exist.")
         branch_detail = BranchDetail(
             company_id=company_id,
             branch_status=branch_status,
@@ -52,11 +54,13 @@ class CreateBranchDetail(graphene.Mutation):
             zone_id=zone_id
         )
         branch_detail.save()
-        return CreateBranchDetail(branch_detail=branch_detail)
+        return CreateBranchDetail(ok=True, branch_detail=branch_detail)
 
 
 class UpdateBranchDetail(graphene.Mutation):
     branch_detail = graphene.Field(BranchDetailType)
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         id = graphene.Int()
@@ -70,14 +74,16 @@ class UpdateBranchDetail(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, id, company_id, branch_status, contact_id, branch_type, work_type, cash_drawer, zone_id):
-        branch_detail = BranchDetail.objects.get(pk=id)
         try:
             company = CompanyDetail.objects.get(pk=company_id)
             contact = ContactDetail.objects.get(pk=contact_id)
+            branch_detail = BranchDetail.objects.get(pk=id)
         except CompanyDetail.DoesNotExist:
-            raise Exception("Company with the given ID does not exist.")
+            return UpdateBranchDetail(ok=False, error="Company with the given ID does not exist.")
         except ContactDetail.DoesNotExist:
-            raise Exception("Contact with the given ID does not exist.")
+            return UpdateBranchDetail(ok=False, error="Contact with the given ID does not exist.")
+        except BranchDetail.DoesNotExist:
+            return UpdateBranchDetail(ok=False, error="Branch with the given ID does not exist.")        
         branch_detail.company_id = company_id
         branch_detail.branch_status = branch_status
         branch_detail.contact_id = contact_id
@@ -86,20 +92,24 @@ class UpdateBranchDetail(graphene.Mutation):
         branch_detail.cash_drawer = cash_drawer
         branch_detail.zone_id = zone_id
         branch_detail.save()
-        return UpdateBranchDetail(branch_detail=branch_detail)
+        return UpdateBranchDetail(ok=True, branch_detail=branch_detail)
 
 
 class DeleteBranchDetail(graphene.Mutation):
-    success = graphene.Boolean()
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         id = graphene.Int()
 
     @classmethod
     def mutate(cls, roots, info, id):
-        branch_detail = BranchDetail.objects.get(pk=id)
+        try:
+            branch_detail = BranchDetail.objects.get(pk=id)
+        except BranchDetail.DoesNotExist:
+            return UpdateBranchDetail(ok=False, error="Branch with the given ID does not exist.") 
         branch_detail.delete()
-        return DeleteBranchDetail(success=True)
+        return DeleteBranchDetail(ok=True)
 
 
 class Mutation(graphene.ObjectType):

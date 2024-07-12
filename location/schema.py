@@ -10,10 +10,10 @@ class CountryType(DjangoObjectType):
 
 
 class Query(graphene.ObjectType):
-    countries = graphene.List(CountryType)
+    all_countries = graphene.List(CountryType)
     country = graphene.Field(CountryType, id=graphene.Int())
 
-    def resolve_countries(self, info, **kwargs):
+    def resolve_all_countries(self, info, **kwargs):
         return Country.objects.all()
 
     def resolve_country(self, info, id):
@@ -54,33 +54,43 @@ class UpdateCountry(graphene.Mutation):
         country_name = graphene.String()
         mobile_format_id = graphene.Int()
         currency_id = graphene.Int()
+    
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     @classmethod
     def mutate(cls, root , info, id, country_code, country_name, mobile_format_id, currency_id):
         try:
             currency = Currency.objects.get(pk=currency_id)
+            country = Country.objects.get(pk=id)
         except Currency.DoesNotExist:
             raise Exception("Currency with the given ID does not exist.")
-        country = Country.objects.get(pk=id)
+        except Country.DoesNotExist:
+            return UpdateCountry(ok=False, error="Country with the ID does not exist")
         country.country_code = country_code
         country.country_name = country_name
         country.mobile_format_id = mobile_format_id
         country.currency_id = currency_id
         country.save()
-        return UpdateCountry(country=country)
+        return UpdateCountry(ok=True, country=country)
 
 
 class DeleteCountry(graphene.Mutation):
-    success = graphene.Boolean()
-
     class Arguments:
         id = graphene.Int()
 
+    ok = graphene.Boolean()
+    error = graphene.String()
+
     @classmethod
     def mutate(cls, root, info, id):
+        try:
+            country = Country.objects.get(pk=id)
+        except Country.DoesNotExist:
+            return DeleteCountry(ok=False, error="Country with the ID does not exist")
         country = Country.objects.get(pk=id)
         country.delete()
-        return DeleteCountry(success=True)
+        return DeleteCountry(ok=True)
 
 
 class Mutation(graphene.ObjectType):

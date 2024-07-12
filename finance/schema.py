@@ -9,10 +9,10 @@ class CurrencyType(DjangoObjectType):
 
 
 class Query(graphene.ObjectType):
-    currencies = graphene.List(CurrencyType)
+    all_currencies = graphene.List(CurrencyType)
     currency = graphene.Field(CurrencyType, id=graphene.Int())
 
-    def resolve_currencies(self, info, **kwargs):
+    def resolve_all_currencies(self, info, **kwargs):
         return Currency.objects.all()
 
     def resolve_currency(self, info, id):
@@ -21,6 +21,8 @@ class Query(graphene.ObjectType):
 
 class CreateCurrency(graphene.Mutation):
     currency = graphene.Field(CurrencyType)
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         currency_name = graphene.String()
@@ -35,11 +37,13 @@ class CreateCurrency(graphene.Mutation):
             country_code=country_code
         )
         currency.save()
-        return CreateCurrency(currency=currency)
+        return CreateCurrency(ok=True, currency=currency)
 
 
 class UpdateCurrency(graphene.Mutation):
     currency = graphene.Field(CurrencyType)
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         id = graphene.Int()
@@ -49,25 +53,32 @@ class UpdateCurrency(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, id, currency_name, currency_code, country_code):
-        currency = Currency.objects.get(pk=id)
+        try:
+            currency = Currency.objects.get(pk=id)
+        except Currency.DoesNotExist:
+            return UpdateCurrency(ok=False, error="Currency with the given ID does not exist")
         currency.currency_name = currency_name
         currency.currency_code = currency_code
         currency.country_code = country_code
         currency.save()
-        return UpdateCurrency(currency=currency)
+        return UpdateCurrency(ok=True, currency=currency)
 
 
 class DeleteCurrency(graphene.Mutation):
-    success = graphene.Boolean()
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         id = graphene.Int()
 
     @classmethod
     def mutate(cls, root, info, id):
-        currency = Currency.objects.get(pk=id)
+        try:
+            currency = Currency.objects.get(pk=id)
+        except Currency.DoesNotExist:
+            return DeleteCurrency(ok=False, error="Currency with the given ID does not exist")
         currency.delete()
-        return DeleteCurrency(success=True)
+        return DeleteCurrency(ok=True)
 
 
 class Mutation(graphene.ObjectType):

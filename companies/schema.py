@@ -36,6 +36,8 @@ class Query(graphene.ObjectType):
 
 class CreateCompanyDetail(graphene.Mutation):
     company_detail = graphene.Field(CompanyDetailType)
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         company_code = graphene.String()
@@ -71,7 +73,7 @@ class CreateCompanyDetail(graphene.Mutation):
         try:
             country = Country.objects.get(pk=country_id)
         except Country.DoesNotExist:
-            raise Exception("Country with the given ID does not exist.")
+            return CreateCompanyDetail(ok=False, error="Country with the given ID does not exist.")
         company_detail = CompanyDetail(
             company_code=company_code,
             company_name=company_name,
@@ -98,11 +100,13 @@ class CreateCompanyDetail(graphene.Mutation):
             FSSAI=FSSAI
         )
         company_detail.save()
-        return CreateCompanyDetail(company_detail=company_detail)
+        return CreateCompanyDetail(ok=True, company_detail=company_detail)
 
 
 class UpdateCompanyDetail(graphene.Mutation):
     company_detail = graphene.Field(CompanyDetailType)
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         id = graphene.Int()
@@ -138,9 +142,11 @@ class UpdateCompanyDetail(graphene.Mutation):
                appointment_auto_confirm, FSSAI):
         try:
             country = Country.objects.get(pk=country_id)
+            company_detail = CompanyDetail.objects.get(pk=id)
         except Country.DoesNotExist:
-            raise Exception("Country with the given ID does not exist.")
-        company_detail = CompanyDetail.objects.get(pk=id)
+            return UpdateCompanyDetail(ok=False, error="Country with the given ID does not exist.")
+        except CompanyDetail.DoesNotExist:
+            return UpdateCompanyDetail(ok=False, error="Company with the given ID does not exist.")        
         company_detail.company_code = company_code
         company_detail.company_name = company_name
         company_detail.company_logo_path = company_logo_path
@@ -165,24 +171,30 @@ class UpdateCompanyDetail(graphene.Mutation):
         company_detail.appointment_auto_confirm = appointment_auto_confirm
         company_detail.FSSAI = FSSAI
         company_detail.save()
-        return UpdateCompanyDetail(company_detail=company_detail)
+        return UpdateCompanyDetail(ok=True, company_detail=company_detail)
 
 
 class DeleteCompanyDetail(graphene.Mutation):
-    success = graphene.Boolean()
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         id = graphene.Int()
 
     @classmethod
     def mutate(cls, root, info, id):
-        company_detail = CompanyDetail.objects.get(pk=id)
+        try:
+            company_detail = CompanyDetail.objects.get(pk=id)
+        except CompanyDetail.DoesNotExist:
+            return UpdateCompanyDetail(ok=False, error="Company with the given ID does not exist.")  
         company_detail.delete()
-        return DeleteCompanyDetail(success=True)
+        return DeleteCompanyDetail(ok=True)
 
 
 class CreateCompanyFeatures(graphene.Mutation):
     company_feature = graphene.Field(CompanyFeaturesType)
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         feature_id = graphene.Int()
@@ -195,20 +207,22 @@ class CreateCompanyFeatures(graphene.Mutation):
             features = AppFeatures.objects.get(pk=feature_id)
             company = CompanyDetail.objects.get(pk=company_id)
         except AppFeatures.DoesNotExist:
-            raise Exception("App Features with the given ID does not exist.")
+            return CreateCompanyFeatures(ok=False, error="App Features with the given ID does not exist")
         except CompanyDetail.DoesNotExist:
-            raise Exception("Company with the given ID does not exist.")
+            return CreateCompanyFeatures(ok=False, error="Company with the given ID does not exist.")
         company_feature = CompanyFeatures(
             feature_id=feature_id,
             company_id=company_id,
             company_feature_status=company_feature_status
         )
         company_feature.save()
-        return CreateCompanyFeatures(company_feature=company_feature)
+        return CreateCompanyFeatures(ok=True, company_feature=company_feature)
 
 
 class UpdateCompanyFeatures(graphene.Mutation):
     company_feature = graphene.Field(CompanyFeaturesType)
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         id = graphene.Int()
@@ -221,29 +235,36 @@ class UpdateCompanyFeatures(graphene.Mutation):
         try:
             features = AppFeatures.objects.get(pk=feature_id)
             company = CompanyDetail.objects.get(pk=company_id)
+            company_feature = CompanyFeatures.objects.get(pk=id)
         except AppFeatures.DoesNotExist:
-            raise Exception("App Features with the given ID does not exist.")
+            return UpdateCompanyFeatures(ok=True, error="App Features with the given ID does not exist.")
         except CompanyDetail.DoesNotExist:
-            raise Exception("Company with the given ID does not exist.")
+            return UpdateCompanyFeatures(ok=False, error="Company with the given ID does not exist.")
+        except CompanyFeatures.DoesNotExist:
+            return UpdateCompanyFeatures(ok=False, error="Company Features with the given ID does not exist.")
         company_feature = CompanyFeatures.objects.get(pk=id)
         company_feature.feature_id = feature_id
         company_feature.company_id = company_id
         company_feature.company_feature_status = company_feature_status
         company_feature.save()
-        return UpdateCompanyFeatures(company_feature=company_feature)
+        return UpdateCompanyFeatures(ok=False, company_feature=company_feature)
 
 
 class DeleteCompanyFeatures(graphene.Mutation):
-    success = graphene.Boolean()
+    ok = graphene.Boolean()
+    error = graphene.String()
 
     class Arguments:
         id = graphene.Int()
 
     @classmethod
     def mutate(cls, root, info, id):
-        company_feature = CompanyFeatures.objects.get(pk=id)
+        try:
+            company_feature = CompanyFeatures.objects.get(pk=id)
+        except CompanyFeatures.DoesNotExist:
+            return UpdateCompanyFeatures(ok=False, error="Company Features with the given ID does not exist.")
         company_feature.delete()
-        return DeleteCompanyFeatures(success=True)
+        return DeleteCompanyFeatures(ok=True)
 
 
 class Mutation(graphene.ObjectType):

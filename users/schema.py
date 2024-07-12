@@ -76,7 +76,7 @@ class CreateUserDetail(graphene.Mutation):
         user_gender = graphene.Boolean(required=False)
         user_status = graphene.Boolean(required=False)
 
-    user = graphene.Field(UserDetail)
+    user = graphene.Field(UserDetailType)
 
     ok = graphene.Boolean()
     error = graphene.String()
@@ -84,21 +84,23 @@ class CreateUserDetail(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, user_mobile, international_calling_code, calling_country, 
                email, password, user_pin, is_pin_reset_requested, first_name, last_name, user_dob, 
-               marital_status, user_gender, user_status):
-        user_management = UserLogin(user_mobile=user_mobile, international_calling_code=international_calling_code, 
-                                    calling_country=calling_country, email=email, password=password, 
-                                    user_pin=user_pin, is_pin_reset_requested=is_pin_reset_requested)
-        user_management.set_password(password)
-        user_management.save()
+        marital_status, user_gender, user_status):
         try:
-            UserDetail.objects.get(email=email)
+            UserLogin.objects.get(email=email)
             return CreateUserDetail(ok=False, error="User already exists")
         except UserDetail.DoesNotExist:
             try:
-                user = UserDetail(user_id=user_management.user_id, first_name=first_name, 
-                                  last_name=last_name, user_dob=user_dob, marital_status=marital_status, 
-                                  user_gender=user_gender, user_status=user_status)
+                user = UserDetail(first_name=first_name, last_name=last_name, user_dob=user_dob, 
+                                  marital_status=marital_status, user_gender=user_gender, 
+                                  user_status=user_status)
                 user.save()
+                user_login = UserLogin(user_id=user.user_id, user_mobile=user_mobile, 
+                                            international_calling_code=international_calling_code, 
+                                            calling_country=calling_country, email=email, 
+                                            password=password, user_pin=user_pin, 
+                                            is_pin_reset_requested=is_pin_reset_requested)
+                user_login.set_password(password)
+                user_login.save()
                 return CreateUserDetail(ok=True, user=user)
             except Exception as e:
                 print(e)
@@ -107,6 +109,7 @@ class CreateUserDetail(graphene.Mutation):
 
 class UpdateUserDetail(graphene.Mutation):
     class Arguments:
+        id = graphene.Int()
         user_mobile = graphene.Int(required=True)
         international_calling_code = graphene.Int(required=True)
         calling_country = graphene.String(required=True)
@@ -121,7 +124,7 @@ class UpdateUserDetail(graphene.Mutation):
         user_gender = graphene.Boolean(required=False)
         user_status = graphene.Boolean(required=False)
 
-    user = graphene.Field(UserDetail)
+    user = graphene.Field(UserDetailType)
     ok = graphene.Boolean()
     error = graphene.String()
 
@@ -129,11 +132,14 @@ class UpdateUserDetail(graphene.Mutation):
     # @login_required
     def mutate(cls, root, info, id, email, first_name, last_name, user_dob, 
                marital_status, user_gender, user_status):
-        auth_user = UserLogin.objects.get(pk=id)
+        try:
+            auth_user = UserLogin.objects.get(user_id=id)
+        except UserLogin.DoesNotExist:
+            return UpdateUserDetail(ok=False, error="User with the given ID does not exist.")
         user_detail = UserDetail.objects.get(user_id=auth_user.user_id)
         if email and email != auth_user.email:
             try:
-                UserDetail.objects.get(email=email)
+                UserLogin.objects.get(email=email)
                 return UpdateUserDetail(ok=False, error="That email is already taken")
             except UserDetail.DoesNotExist:
                 auth_user.email = email
@@ -159,17 +165,22 @@ class UpdateUserDetail(graphene.Mutation):
 
 class DeleteUserDetail(graphene.Mutation):
     ok = graphene.Boolean()
+    error = graphene.String()
 
     @classmethod
     # @login_required
     def mutate(cls, root, info, id):
-        auth_user = UserLogin.objects.get(pk=id)
+        try:
+            auth_user = UserLogin.objects.get(user_id=id)
+        except UserLogin.DoesNotExist:
+            return UpdateUserDetail(ok=False, error="User with the given ID does not exist.")
         auth_user.delete()
         return DeleteUserDetail(ok=True)
     
 
 class CreateUserCompanies(graphene.Mutation):
     class Arguments:
+
         user_id = graphene.Int(required=True)
         company_id = graphene.Int(required=True)
         user_type = graphene.Boolean()
@@ -183,11 +194,11 @@ class CreateUserCompanies(graphene.Mutation):
     def mutate(cls, root, info, user_id, company_id, user_type, status):
         try:
             company = CompanyDetail.objects.get(pk=company_id)
-            user = UserLogin.objects.get(pk=user_id)
+            user = UserDetail.objects.get(pk=user_id)
         except CompanyDetail.DoesNotExist:
-            raise Exception("Company with the given ID does not exist.")
-        except UserLogin.DoesNotExist:
-            raise Exception("User with the given ID does not exist.")
+            return UpdateUserDetail(ok=False, error="Company with the given ID does not exist.")
+        except UserDetail.DoesNotExist:
+            return UpdateUserDetail(ok=False, error="User with the given ID does not exist.")
         user_companies = UserCompanies(
             user_id=user_id,
             company_id=company_id,
@@ -200,6 +211,7 @@ class CreateUserCompanies(graphene.Mutation):
 
 class UpdateUserCompanies(graphene.Mutation):
     class Arguments:
+        id = graphene.Int()
         user_id = graphene.Int(required=True)
         company_id = graphene.Int(required=True)
         user_type = graphene.Boolean()
@@ -210,16 +222,16 @@ class UpdateUserCompanies(graphene.Mutation):
     error = graphene.String()
 
     @classmethod
-    def mutate(cls, root, info, user_id, company_id, user_type=None, status=None):
+    def mutate(cls, root, info, id, user_id, company_id, user_type=None, status=None):
         try:
             company = CompanyDetail.objects.get(pk=company_id)
-            user = UserLogin.objects.get(pk=user_id)
+            user = UserDetail.objects.get(pk=id)
+            user2 = UserDetail.objects.get(pk=user_id)
         except CompanyDetail.DoesNotExist:
-            raise Exception("Company with the given ID does not exist.")
-        except UserLogin.DoesNotExist:
-            raise Exception("User with the given ID does not exist.")
-        auth_user = UserLogin.objects.get(pk=id)
-        user_companies = UserCompanies.objects.get(user_id=auth_user.user_id)
+            return UpdateUserCompanies(ok=False, error="Company with the given ID does not exist.")
+        except UserDetail.DoesNotExist:
+            return UpdateUserCompanies(ok=False, error="User with the given ID does not exist.")
+        user_companies = UserCompanies.objects.get(user_id=user.user_id)
         user_companies.user_id = user_id
         user_companies.company_id = company_id
         user_companies.user_type = user_type
@@ -260,11 +272,11 @@ class CreateUserBranchDetail(graphene.Mutation):
     def mutate(cls, root, info, user_id, branch_id, user_branch_status):
         try:
             branch = BranchDetail.objects.get(pk=branch_id)
-            user = UserLogin.objects.get(pk=user_id)
+            user = UserDetail.objects.get(pk=user_id)
         except BranchDetail.DoesNotExist:
-            raise Exception("Branch with the given ID does not exist.")
-        except UserLogin.DoesNotExist:
-            raise Exception("User with the given ID does not exist.")
+            return CreateUserBranchDetail(ok=False, error="Branch with the given ID does not exist.")
+        except UserDetail.DoesNotExist:
+            return CreateUserBranchDetail(ok=False, error="User with the given ID does not exist.")
         user_branch_detail = UserBranchDetail(
             user_id=user_id,
             branch_id=branch_id,
@@ -276,6 +288,7 @@ class CreateUserBranchDetail(graphene.Mutation):
 
 class UpdateUserBranchDetail(graphene.Mutation):
     class Arguments:
+        id = graphene.Int()
         user_id = graphene.Int(required=True)
         branch_id = graphene.Int(required=True)
         user_branch_status = graphene.Int()
@@ -285,20 +298,19 @@ class UpdateUserBranchDetail(graphene.Mutation):
     error = graphene.String()
 
     @classmethod
-    def mutate(cls, root, info, user_id, branch_id, user_branch_status=None):
+    def mutate(cls, root, info, id, user_id, branch_id, user_branch_status=None):
         try:
             branch = BranchDetail.objects.get(pk=branch_id)
-            user = UserLogin.objects.get(pk=user_id)
+            user = UserDetail.objects.get(pk=id)
+            user2 = UserDetail.objects.get(pk=user_id)
         except BranchDetail.DoesNotExist:
-            raise Exception("Branch with the given ID does not exist.")
-        except UserLogin.DoesNotExist:
-            raise Exception("User with the given ID does not exist.")
-        auth_user = UserLogin.objects.get(pk=id)
-        user_branch_detail = UserBranchDetail.objects.get(user_id=auth_user.user_id)
+            return UpdateUserBranchDetail(ok=False, error="Branch with the given ID does not exist.")
+        except UserDetail.DoesNotExist:
+            return UpdateUserBranchDetail(ok=False, error="User with the given ID does not exist.")
+        user_branch_detail = UserBranchDetail.objects.get(user_id=user.user_id)
         user_branch_detail.user_id = user_id
         user_branch_detail.branch_id = branch_id
         user_branch_detail.user_branch_status = user_branch_status
-        user_branch_detail.save()
         user_branch_detail.save()
         return UpdateUserBranchDetail(ok=True, user_branch_detail=user_branch_detail)
         
