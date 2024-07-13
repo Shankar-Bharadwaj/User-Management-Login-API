@@ -12,8 +12,8 @@ class CompanyDetail(models.Model):
     company_revenue_id = models.IntegerField()
     company_website = models.URLField()
     company_gstin = models.CharField(max_length=255)
-    company_status = models.CharField(max_length=1)
-    feedback_flag = models.CharField(max_length=1)
+    company_status = models.CharField(max_length=10)
+    feedback_flag = models.CharField(max_length=10)
     company_dawn = models.TimeField()
     company_dusk = models.TimeField()
     company_timeslice = models.TimeField()
@@ -25,12 +25,18 @@ class CompanyDetail(models.Model):
     latitude = models.CharField(max_length=255)
     longitude = models.CharField(max_length=255)
     radius = models.CharField(max_length=255)
-    customer_app = models.CharField(max_length=1)
+    customer_app = models.CharField(max_length=10)
     appointment_auto_confirm = models.BooleanField()
     FSSAI = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.company_name
 
 
 class CompanyFeatures(models.Model):
     feature_id = models.ForeignKey(AppFeatures, on_delete=models.CASCADE)
     company_id = models.ForeignKey(CompanyDetail, on_delete=models.CASCADE)
     company_feature_status = models.CharField(max_length=1, choices=[('Y', 'Yes'), ('N', 'No')])
+
+    def __str__(self):
+        return f'{self.company_id.company_name}-{self.feature_id.feature_name}'

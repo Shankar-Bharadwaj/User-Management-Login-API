@@ -45,9 +45,9 @@ class CreateBranchDetail(graphene.Mutation):
         except ContactDetail.DoesNotExist:
             return CreateBranchDetail(ok=False, error="Contact with the given ID does not exist.")
         branch_detail = BranchDetail(
-            company_id=company_id,
+            company_id=company,
             branch_status=branch_status,
-            contact_id=contact_id,
+            contact_id=contact,
             branch_type=branch_type,
             work_type=work_type,
             cash_drawer=cash_drawer,
@@ -84,9 +84,9 @@ class UpdateBranchDetail(graphene.Mutation):
             return UpdateBranchDetail(ok=False, error="Contact with the given ID does not exist.")
         except BranchDetail.DoesNotExist:
             return UpdateBranchDetail(ok=False, error="Branch with the given ID does not exist.")        
-        branch_detail.company_id = company_id
+        branch_detail.company_id = company
         branch_detail.branch_status = branch_status
-        branch_detail.contact_id = contact_id
+        branch_detail.contact_id = contact
         branch_detail.branch_type = branch_type
         branch_detail.work_type = work_type
         branch_detail.cash_drawer = cash_drawer

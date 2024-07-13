@@ -12,3 +12,6 @@ class BranchDetail(models.Model):
     work_type = models.IntegerField()
     cash_drawer = models.CharField(max_length=1, choices=[('M', 'Main'), ('S', 'Sub')])
     zone_id = models.IntegerField()
+
+    def __str__(self):
+        return f'Branch - {self.company_id.company_name}'

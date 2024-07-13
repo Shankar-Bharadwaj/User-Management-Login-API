@@ -4,8 +4,9 @@ from oauth2_provider.models import AccessToken
 from .models import UserDetail, UserCompanies, UserBranchDetail
 from graphql_jwt.decorators import login_required
 from authentication.models import UserLogin
-from companies.models import CompanyDetail
+from companies.models import CompanyDetail, CompanyFeatures
 from branches.models import BranchDetail
+from companies.schema import CompanyFeaturesType
 
 
 class UserDetailType(DjangoObjectType):
@@ -27,6 +28,9 @@ class Query(graphene.ObjectType):
     all_user_details = graphene.List(UserDetailType)
     user_detail = graphene.Field(UserDetailType, id=graphene.Int())
     logged_in_user = graphene.Field(UserDetailType)
+    logged_in_user_company = graphene.Field(UserCompaniesType)
+    logged_in_user_branch = graphene.Field(UserBranchDetailType)
+    logged_in_user_company_features = graphene.List(CompanyFeaturesType)
     all_user_companies = graphene.List(UserCompaniesType)
     user_company = graphene.Field(UserCompaniesType, id=graphene.Int())
     all_user_branch_details = graphene.List(UserBranchDetailType)
@@ -45,6 +49,32 @@ class Query(graphene.ObjectType):
         if not user:
             raise Exception('User not found.')
         return user
+
+    @login_required
+    def resolve_logged_in_user_branch(root, info):
+        auth_user = UserLogin.objects.get(email=info.context.user.email)
+        user_branch = UserBranchDetail.objects.get(user_id=auth_user.user_id)
+        if not user_branch:
+            raise Exception('User Branches not found.')
+        return user_branch
+
+    @login_required
+    def resolve_logged_in_user_company(root, info):
+        auth_user = UserLogin.objects.get(email=info.context.user.email)
+        user_company = UserCompanies.objects.get(user_id=auth_user.user_id)
+        if not user_company:
+            raise Exception('User Companies not found.')
+        return user_company
+
+    @login_required
+    def resolve_logged_in_user_company_features(root, info):
+        auth_user = UserLogin.objects.get(email=info.context.user.email)
+        user_company = UserCompanies.objects.get(user_id=auth_user.user_id)
+        if not user_company:
+            raise Exception('User Companies not found.')
+        company_id = user_company.company_id
+        company_features = CompanyFeatures.objects.filter(company_id=company_id)
+        return company_features
 
     def resolve_all_user_companies(root, info, **kwargs):
         return UserCompanies.objects.all()
@@ -67,7 +97,7 @@ class CreateUserDetail(graphene.Mutation):
         email = graphene.String(required=True)
         password = graphene.String(required=True)
         user_pin = graphene.String(required=True)
-        is_pin_reset_requested = graphene.Boolean(required=False)
+        isPinResetRequested = graphene.Boolean(required=False)
 
         first_name = graphene.String(required=True)
         last_name = graphene.String(required=True)
@@ -83,24 +113,24 @@ class CreateUserDetail(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, user_mobile, international_calling_code, calling_country, 
-               email, password, user_pin, is_pin_reset_requested, first_name, last_name, user_dob, 
-        marital_status, user_gender, user_status):
+               email, password, user_pin, isPinResetRequested, first_name, last_name, user_dob,
+               marital_status, user_gender, user_status):
         try:
             UserLogin.objects.get(email=email)
             return CreateUserDetail(ok=False, error="User already exists")
-        except UserDetail.DoesNotExist:
+        except UserLogin.DoesNotExist:
             try:
-                user = UserDetail(first_name=first_name, last_name=last_name, user_dob=user_dob, 
+                user_login = UserLogin(user_mobile=user_mobile, 
+                                        international_calling_code=international_calling_code, 
+                                        calling_country=calling_country, email=email, 
+                                        password=password, user_pin=user_pin, 
+                                        isPinResetRequested=isPinResetRequested)
+                user_login.set_password(password)
+                user = UserDetail(user_id=user_login, first_name=first_name, last_name=last_name, user_dob=user_dob, 
                                   marital_status=marital_status, user_gender=user_gender, 
                                   user_status=user_status)
-                user.save()
-                user_login = UserLogin(user_id=user.user_id, user_mobile=user_mobile, 
-                                            international_calling_code=international_calling_code, 
-                                            calling_country=calling_country, email=email, 
-                                            password=password, user_pin=user_pin, 
-                                            is_pin_reset_requested=is_pin_reset_requested)
-                user_login.set_password(password)
                 user_login.save()
+                user.save()
                 return CreateUserDetail(ok=True, user=user)
             except Exception as e:
                 print(e)
@@ -115,7 +145,7 @@ class UpdateUserDetail(graphene.Mutation):
         calling_country = graphene.String(required=True)
         email = graphene.String(required=True)
         user_pin = graphene.String(required=True)
-        is_pin_reset_requested = graphene.Boolean(required=False)
+        isPinResetRequested = graphene.Boolean(required=False)
 
         first_name = graphene.String(required=True)
         last_name = graphene.String(required=True)
@@ -180,7 +210,6 @@ class DeleteUserDetail(graphene.Mutation):
 
 class CreateUserCompanies(graphene.Mutation):
     class Arguments:
-
         user_id = graphene.Int(required=True)
         company_id = graphene.Int(required=True)
         user_type = graphene.Boolean()
@@ -194,14 +223,14 @@ class CreateUserCompanies(graphene.Mutation):
     def mutate(cls, root, info, user_id, company_id, user_type, status):
         try:
             company = CompanyDetail.objects.get(pk=company_id)
-            user = UserDetail.objects.get(pk=user_id)
+            auth_user = UserLogin.objects.get(pk=user_id)
         except CompanyDetail.DoesNotExist:
             return UpdateUserDetail(ok=False, error="Company with the given ID does not exist.")
-        except UserDetail.DoesNotExist:
+        except UserLogin.DoesNotExist:
             return UpdateUserDetail(ok=False, error="User with the given ID does not exist.")
         user_companies = UserCompanies(
-            user_id=user_id,
-            company_id=company_id,
+            user_id=auth_user,
+            company_id=company,
             user_type=user_type,
             status=status
         )
@@ -225,15 +254,15 @@ class UpdateUserCompanies(graphene.Mutation):
     def mutate(cls, root, info, id, user_id, company_id, user_type=None, status=None):
         try:
             company = CompanyDetail.objects.get(pk=company_id)
-            user = UserDetail.objects.get(pk=id)
-            user2 = UserDetail.objects.get(pk=user_id)
+            user = UserLogin.objects.get(pk=id)
+            user2 = UserLogin.objects.get(pk=user_id)
         except CompanyDetail.DoesNotExist:
             return UpdateUserCompanies(ok=False, error="Company with the given ID does not exist.")
-        except UserDetail.DoesNotExist:
+        except UserLogin.DoesNotExist:
             return UpdateUserCompanies(ok=False, error="User with the given ID does not exist.")
         user_companies = UserCompanies.objects.get(user_id=user.user_id)
-        user_companies.user_id = user_id
-        user_companies.company_id = company_id
+        user_companies.user_id = user2
+        user_companies.company_id = company
         user_companies.user_type = user_type
         user_companies.status = status
         user_companies.save()
@@ -272,14 +301,14 @@ class CreateUserBranchDetail(graphene.Mutation):
     def mutate(cls, root, info, user_id, branch_id, user_branch_status):
         try:
             branch = BranchDetail.objects.get(pk=branch_id)
-            user = UserDetail.objects.get(pk=user_id)
+            user = UserLogin.objects.get(pk=user_id)
         except BranchDetail.DoesNotExist:
             return CreateUserBranchDetail(ok=False, error="Branch with the given ID does not exist.")
-        except UserDetail.DoesNotExist:
+        except UserLogin.DoesNotExist:
             return CreateUserBranchDetail(ok=False, error="User with the given ID does not exist.")
         user_branch_detail = UserBranchDetail(
-            user_id=user_id,
-            branch_id=branch_id,
+            user_id=user,
+            branch_id=branch,
             user_branch_status=user_branch_status,
         )
         user_branch_detail.save() 
@@ -301,15 +330,15 @@ class UpdateUserBranchDetail(graphene.Mutation):
     def mutate(cls, root, info, id, user_id, branch_id, user_branch_status=None):
         try:
             branch = BranchDetail.objects.get(pk=branch_id)
-            user = UserDetail.objects.get(pk=id)
-            user2 = UserDetail.objects.get(pk=user_id)
+            user = UserLogin.objects.get(pk=id)
+            user2 = UserLogin.objects.get(pk=user_id)
         except BranchDetail.DoesNotExist:
             return UpdateUserBranchDetail(ok=False, error="Branch with the given ID does not exist.")
-        except UserDetail.DoesNotExist:
+        except UserLogin.DoesNotExist:
             return UpdateUserBranchDetail(ok=False, error="User with the given ID does not exist.")
         user_branch_detail = UserBranchDetail.objects.get(user_id=user.user_id)
-        user_branch_detail.user_id = user_id
-        user_branch_detail.branch_id = branch_id
+        user_branch_detail.user_id = user2
+        user_branch_detail.branch_id = branch
         user_branch_detail.user_branch_status = user_branch_status
         user_branch_detail.save()
         return UpdateUserBranchDetail(ok=True, user_branch_detail=user_branch_detail)

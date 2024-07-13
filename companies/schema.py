@@ -89,7 +89,7 @@ class CreateCompanyDetail(graphene.Mutation):
             company_timeslice=company_timeslice,
             bank_name=bank_name,
             bank_code=bank_code,
-            country_id=country_id,
+            country_id=country,
             merchant_id=merchant_id,
             merchant_secret_key=merchant_secret_key,
             latitude=latitude,
@@ -161,7 +161,7 @@ class UpdateCompanyDetail(graphene.Mutation):
         company_detail.company_timeslice = company_timeslice
         company_detail.bank_name = bank_name
         company_detail.bank_code = bank_code
-        company_detail.country_id = country_id
+        company_detail.country_id = country
         company_detail.merchant_id = merchant_id
         company_detail.merchant_secret_key = merchant_secret_key
         company_detail.latitude = latitude
@@ -211,8 +211,8 @@ class CreateCompanyFeatures(graphene.Mutation):
         except CompanyDetail.DoesNotExist:
             return CreateCompanyFeatures(ok=False, error="Company with the given ID does not exist.")
         company_feature = CompanyFeatures(
-            feature_id=feature_id,
-            company_id=company_id,
+            feature_id=features,
+            company_id=company,
             company_feature_status=company_feature_status
         )
         company_feature.save()
@@ -243,8 +243,8 @@ class UpdateCompanyFeatures(graphene.Mutation):
         except CompanyFeatures.DoesNotExist:
             return UpdateCompanyFeatures(ok=False, error="Company Features with the given ID does not exist.")
         company_feature = CompanyFeatures.objects.get(pk=id)
-        company_feature.feature_id = feature_id
-        company_feature.company_id = company_id
+        company_feature.feature_id = features
+        company_feature.company_id = company
         company_feature.company_feature_status = company_feature_status
         company_feature.save()
         return UpdateCompanyFeatures(ok=False, company_feature=company_feature)

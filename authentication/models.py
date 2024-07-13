@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from users.models import UserDetail
 
 
 class UserManager(BaseUserManager):
@@ -23,8 +22,7 @@ class UserManager(BaseUserManager):
 
 
 class UserLogin(AbstractBaseUser):
-    id = models.AutoField(primary_key=True)
-    user_id = models.OneToOneField(UserDetail, on_delete=models.CASCADE)
+    user_id = models.AutoField(primary_key=True)
     user_mobile = models.BigIntegerField()
     international_calling_code = models.IntegerField()
     calling_country = models.CharField(max_length=5)

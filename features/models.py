@@ -7,3 +7,6 @@ class AppFeatures(models.Model):
     feature_type = models.CharField(max_length=10)
     feature_description = models.TextField()
     feature_status = models.BooleanField()
+
+    def __str__(self):
+        return self.feature_name

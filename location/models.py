@@ -8,3 +8,6 @@ class Country(models.Model):
     country_name = models.CharField(max_length=255)
     mobile_format_id = models.IntegerField()
     currency_id = models.ForeignKey(Currency, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.country_name

@@ -39,7 +39,7 @@ class CreateCountry(graphene.Mutation):
             country_code=country_code,
             country_name=country_name,
             mobile_format_id=mobile_format_id,
-            currency_id=currency_id
+            currency_id=currency
         )
         country.save()
         return CreateCountry(country=country)
@@ -70,7 +70,7 @@ class UpdateCountry(graphene.Mutation):
         country.country_code = country_code
         country.country_name = country_name
         country.mobile_format_id = mobile_format_id
-        country.currency_id = currency_id
+        country.currency_id = currency
         country.save()
         return UpdateCountry(ok=True, country=country)
 
