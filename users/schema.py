@@ -95,7 +95,6 @@ class CreateUserDetail(graphene.Mutation):
         international_calling_code = graphene.Int(required=True)
         calling_country = graphene.String(required=True)
         email = graphene.String(required=True)
-        password = graphene.String(required=True)
         user_pin = graphene.String(required=True)
         isPinResetRequested = graphene.Boolean(required=False)
 
@@ -113,7 +112,7 @@ class CreateUserDetail(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, user_mobile, international_calling_code, calling_country, 
-               email, password, user_pin, isPinResetRequested, first_name, last_name, user_dob,
+               email, user_pin, isPinResetRequested, first_name, last_name, user_dob,
                marital_status, user_gender, user_status):
         try:
             UserLogin.objects.get(email=email)
@@ -122,10 +121,9 @@ class CreateUserDetail(graphene.Mutation):
             try:
                 user_login = UserLogin(user_mobile=user_mobile, 
                                         international_calling_code=international_calling_code, 
-                                        calling_country=calling_country, email=email, 
-                                        password=password, user_pin=user_pin, 
+                                        calling_country=calling_country, email=email,
                                         isPinResetRequested=isPinResetRequested)
-                user_login.set_password(password)
+                user_login.set_user_pin(user_pin)
                 user = UserDetail(user_id=user_login, first_name=first_name, last_name=last_name, user_dob=user_dob, 
                                   marital_status=marital_status, user_gender=user_gender, 
                                   user_status=user_status)
@@ -144,7 +142,6 @@ class UpdateUserDetail(graphene.Mutation):
         international_calling_code = graphene.Int(required=True)
         calling_country = graphene.String(required=True)
         email = graphene.String(required=True)
-        user_pin = graphene.String(required=True)
         isPinResetRequested = graphene.Boolean(required=False)
 
         first_name = graphene.String(required=True)

@@ -148,7 +148,8 @@ GRAPHENE = {
 }
 
 AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend",
+    "authentication.backends.UserLoginBackend",
+    # "django.contrib.auth.backends.ModelBackend",
     "oauth2_provider.backends.OAuth2Backend",
 ]
 

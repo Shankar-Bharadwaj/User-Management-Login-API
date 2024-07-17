@@ -1,2 +1,12 @@
 # Ignore service account JSON file
 service-account-file.json
+
+# Ignore the migrations files
+authentication/migrations
+branches/migrations
+companies/migrations
+contacts/migrations
+features/migrations
+finance/migrations
+location/migrations
+users/migrations
