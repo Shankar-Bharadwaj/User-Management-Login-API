@@ -6,33 +6,33 @@ from .utils import send_fcm_notification
 from django.contrib.auth import authenticate
 
 
-# class CustomTokenView(TokenView):
-#     def post(self, request, *args, **kwargs):
-#         username_or_phone = request.POST.get('username')
-#         user_pin = request.POST.get('password')
-#         fcm_key = request.POST.get('fcm_key')
+class CustomTokenView(TokenView):
+    def post(self, request, *args, **kwargs):
+        username_or_phone = request.POST.get('username')
+        user_pin = request.POST.get('password')
+        fcm_key = request.POST.get('fcm_key')
 
-#         # Authenticate using either email or phone number
-#         user = authenticate(request, username=username_or_phone, password=user_pin)
-#         if user is None:
-#             return JsonResponse({'error': 'Invalid email/phone number or PIN'}, status=400)
+        # Authenticate using either email or phone number
+        user = authenticate(request, username=username_or_phone, password=user_pin)
+        if user is None:
+            return JsonResponse({'error': 'Invalid email/phone number or PIN'}, status=400)
         
-#         # Check for existing FCM key
-#         if user.fcm_key and user.fcm_key != fcm_key:
-#             send_fcm_notification(
-#                 user.fcm_key,
-#                 'Logged In on Another Device',
-#                 'You have logged in on another device.',
-#                 {'type': 'C'}
-#             )
+        # Check for existing FCM key
+        if user.fcm_key and user.fcm_key != fcm_key:
+            send_fcm_notification(
+                user.fcm_key,
+                'Logged In on Another Device',
+                'You have logged in on another device.',
+                {'type': 'C'}
+            )
         
-#         # Update the FCM key
-#         user.fcm_key = fcm_key
-#         user.save()
+        # Update the FCM key
+        user.fcm_key = fcm_key
+        user.save()
         
-#         # Call the original token endpoint logic
-#         response = super().post(request, *args, **kwargs)
-#         return response
+        # Call the original token endpoint logic
+        response = super().post(request, *args, **kwargs)
+        return response
 
 
 # Views to register device to FCM and get the registration token
