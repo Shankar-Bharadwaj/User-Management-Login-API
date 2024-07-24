@@ -10,3 +10,13 @@ features/migrations
 finance/migrations
 location/migrations
 users/migrations
+
+# Ignore the __pycache__ files
+authentication/__pycache__
+branches/__pycache__
+companies/__pycache__
+contacts/__pycache__
+features/__pycache__
+finance/__pycache__
+location/__pycache__
+users/__pycache__
