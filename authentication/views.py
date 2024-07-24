@@ -8,6 +8,14 @@ from django.contrib.auth import authenticate
 
 class CustomTokenView(TokenView):
     def post(self, request, *args, **kwargs):
+
+        # Adding the username field if its missing
+        
+        # data = request.POST.copy()
+        # if 'username' not in data:
+        #     data['username'] = data.get('email')
+        # request.POST = data
+
         username_or_phone = request.POST.get('username')
         user_pin = request.POST.get('password')
         fcm_key = request.POST.get('fcm_key')
