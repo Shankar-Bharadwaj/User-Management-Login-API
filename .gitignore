@@ -2,25 +2,25 @@
 service-account-file.json
 
 # Ignore the migrations files
-authentication/migrations
-branches/migrations
-companies/migrations
-contacts/migrations
-features/migrations
-finance/migrations
-location/migrations
-users/migrations
+authentication/migrations/
+branches/migrations/
+companies/migrations/
+contacts/migrations/
+features/migrations/
+finance/migrations/
+location/migrations/
+users/migrations/
 
 # Ignore the __pycache__ files
-authentication/__pycache__
-branches/__pycache__
-companies/__pycache__
-contacts/__pycache__
-features/__pycache__
-finance/__pycache__
-location/__pycache__
-users/__pycache__
-user_management/__pycache__
+authentication/__pycache__/
+branches/__pycache__/
+companies/__pycache__/
+contacts/__pycache__/
+features/__pycache__/
+finance/__pycache__/
+location/__pycache__/
+users/__pycache__/
+user_management/__pycache__/
 
 # Ignore the media folder
 media
