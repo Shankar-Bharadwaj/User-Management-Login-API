@@ -9,7 +9,7 @@ class BranchDetail(models.Model):
     branch_status = models.CharField(max_length=10)
     contact_id = models.ForeignKey(ContactDetail, on_delete=models.CASCADE)
     branch_type = models.CharField(max_length=10)
-    work_type = models.IntegerField()
+    # work_type = models.IntegerField()
     cash_drawer = models.CharField(max_length=1, choices=[('M', 'Main'), ('S', 'Sub')])
     zone_id = models.IntegerField()
 

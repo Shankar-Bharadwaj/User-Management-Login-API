@@ -3,6 +3,7 @@ from graphene_django import DjangoObjectType
 from .models import CompanyDetail, CompanyFeatures
 from location.models import Country
 from features.models import AppFeatures
+from graphene_file_upload.scalars import Upload
 
 
 class CompanyDetailType(DjangoObjectType):
@@ -40,67 +41,53 @@ class CreateCompanyDetail(graphene.Mutation):
     error = graphene.String()
 
     class Arguments:
-        company_code = graphene.String()
-        company_name = graphene.String()
-        company_logo_path = graphene.String()
-        company_business_id = graphene.Int()
-        company_revenue_id = graphene.Int()
-        company_website = graphene.String()
-        company_gstin = graphene.String()
-        company_status = graphene.String()
-        feedback_flag = graphene.String()
-        company_dawn = graphene.String()
-        company_dusk = graphene.String()
-        company_timeslice = graphene.String()
-        bank_name = graphene.String()
-        bank_code = graphene.String()
-        country_id = graphene.Int()
-        merchant_id = graphene.String()
-        merchant_secret_key = graphene.String()
-        latitude = graphene.String()
-        longitude = graphene.String()
-        radius = graphene.String()
-        customer_app = graphene.String()
-        appointment_auto_confirm = graphene.Int()
-        FSSAI = graphene.String()
+        company_code = graphene.String(required=True)
+        company_name = graphene.String(required=True)
+        company_logo = Upload()
+        company_gstin = graphene.String(required=True)
+        company_status = graphene.String(required=True)
+        company_dawn = graphene.Time(required=True)
+        company_dusk = graphene.Time(required=True)
+        company_timeslice = graphene.Time(required=True)
+        country_id = graphene.Int(required=True)
+        FSSAI = graphene.String(required=True)
+        aadhar_number = graphene.String(required=True)
+        pan = graphene.String(required=True)
+        company_address = graphene.String(required=True)
+        business_type = graphene.String(required=True)
 
     @classmethod
-    def mutate(cls, root, info, company_code, company_name, company_logo_path, 
-               company_business_id, company_revenue_id, company_website, company_gstin, 
-               company_status, feedback_flag, company_dawn, company_dusk, company_timeslice, 
-               bank_name, bank_code, country_id, merchant_id, merchant_secret_key, latitude, longitude, 
-               radius, customer_app, appointment_auto_confirm, FSSAI):
+    def mutate(cls, root, info, company_code, company_name, company_gstin, company_status,
+               company_dawn, company_dusk, company_timeslice, country_id, FSSAI, aadhar_number, pan,
+               company_address, business_type, company_logo=None):
         try:
             country = Country.objects.get(pk=country_id)
         except Country.DoesNotExist:
             return CreateCompanyDetail(ok=False, error="Country with the given ID does not exist.")
+        
         company_detail = CompanyDetail(
             company_code=company_code,
             company_name=company_name,
-            company_logo_path=company_logo_path,
-            company_business_id=company_business_id,
-            company_revenue_id=company_revenue_id,
-            company_website=company_website,
+            company_logo=company_logo,
             company_gstin=company_gstin,
             company_status=company_status,
-            feedback_flag=feedback_flag,
             company_dawn=company_dawn,
             company_dusk=company_dusk,
             company_timeslice=company_timeslice,
-            bank_name=bank_name,
-            bank_code=bank_code,
             country_id=country,
-            merchant_id=merchant_id,
-            merchant_secret_key=merchant_secret_key,
-            latitude=latitude,
-            longitude=longitude,
-            radius=radius,
-            customer_app=customer_app,
-            appointment_auto_confirm=appointment_auto_confirm,
-            FSSAI=FSSAI
+            FSSAI=FSSAI,
+            aadhar_number=aadhar_number,
+            pan=pan,
+            company_address=company_address,
+            business_type=business_type
         )
-        company_detail.save()
-        return CreateCompanyDetail(ok=True, company_detail=company_detail)
+        try:
+            company_detail.full_clean()
+            company_detail.save()
+            return CreateCompanyDetail(company_detail=company_detail, ok=True)
+        except Exception as e:
+            error_messages = {field: messages[0] for field, messages in e.message_dict.items()}
+            return CreateCompanyDetail(ok=False, error=error_messages)
 
 
 class UpdateCompanyDetail(graphene.Mutation):

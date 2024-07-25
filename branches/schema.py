@@ -31,12 +31,12 @@ class CreateBranchDetail(graphene.Mutation):
         branch_status = graphene.String()
         contact_id = graphene.Int()
         branch_type = graphene.String()
-        work_type = graphene.Int()
+        # work_type = graphene.Int()
         cash_drawer = graphene.String()
         zone_id = graphene.Int()
 
     @classmethod
-    def mutate(cls, root, info, company_id, branch_status, contact_id, branch_type, work_type, cash_drawer, zone_id):
+    def mutate(cls, root, info, company_id, branch_status, contact_id, branch_type, cash_drawer, zone_id):
         try:
             company = CompanyDetail.objects.get(pk=company_id)
             contact = ContactDetail.objects.get(pk=contact_id)
@@ -49,7 +49,6 @@ class CreateBranchDetail(graphene.Mutation):
             branch_status=branch_status,
             contact_id=contact,
             branch_type=branch_type,
-            work_type=work_type,
             cash_drawer=cash_drawer,
             zone_id=zone_id
         )

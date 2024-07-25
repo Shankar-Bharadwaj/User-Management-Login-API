@@ -21,12 +21,14 @@ from django.views.decorators.csrf import csrf_exempt
 from authentication.views import CustomTokenView
 # from authentication.views import index, showFirebaseJS, send
 
+from graphene_file_upload.django import FileUploadGraphQLView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
+    # path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('token/', CustomTokenView.as_view(), name='token'),
+    path('graphql/', csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))),
     # path('index/', index, name='index'),
     # path('firebase-messaging-sw.js', showFirebaseJS, name="show_firebase_js"),
     # path('send/', send),
