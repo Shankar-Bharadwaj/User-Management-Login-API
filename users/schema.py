@@ -22,6 +22,12 @@ class UserCompaniesType(DjangoObjectType):
 class UserBranchDetailType(DjangoObjectType):
     class Meta:
         model = UserBranchDetail
+
+
+class FeatureInfoType(graphene.ObjectType):
+    feature_id = graphene.Int()
+    feature_name = graphene.String()
+    company_feature_status = graphene.String()
     
 
 class Query(graphene.ObjectType):
@@ -30,7 +36,7 @@ class Query(graphene.ObjectType):
     logged_in_user = graphene.Field(UserDetailType)
     logged_in_user_company = graphene.Field(UserCompaniesType)
     logged_in_user_branch = graphene.Field(UserBranchDetailType)
-    logged_in_user_company_features = graphene.List(CompanyFeaturesType)
+    logged_in_user_company_features = graphene.List(FeatureInfoType)
     all_user_companies = graphene.List(UserCompaniesType)
     user_company = graphene.Field(UserCompaniesType, id=graphene.Int())
     all_user_branch_details = graphene.List(UserBranchDetailType)
@@ -74,7 +80,15 @@ class Query(graphene.ObjectType):
             raise Exception('User Companies not found.')
         company_id = user_company.company_id
         company_features = CompanyFeatures.objects.filter(company_id=company_id)
-        return company_features
+        formatted_features = [
+            {
+                "feature_id": feature.feature_id.feature_id,  # Assuming `id` is the primary key
+                "feature_name": feature.feature_id.feature_name,  # Adjust according to your model's field names
+                "company_feature_status": feature.company_feature_status
+            }
+            for feature in company_features
+        ]
+        return formatted_features
 
     def resolve_all_user_companies(root, info, **kwargs):
         return UserCompanies.objects.all()
