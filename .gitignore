@@ -21,3 +21,6 @@ finance/__pycache__
 location/__pycache__
 users/__pycache__
 user_management/__pycache__
+
+# Ignore the media folder
+media
