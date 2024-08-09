@@ -1,27 +1,8 @@
 from django.db import models
-from django.core.exceptions import ValidationError
 from location.models import Country
 from features.models import AppFeatures
-import re
 import uuid
-
-
-def validate_aadhar_number(aadhar_number):
-    aadhar_number = aadhar_number.strip()
-    aadhar_number = aadhar_number.replace(" ", "")
-    if not re.match(r'^\d{12}$', aadhar_number):
-        raise ValidationError('Aadhar number must be exactly 12 digits long.')
-
-def validate_pan_number(pan_number):
-    pan_number = pan_number.strip()
-    if not re.match(r'^[A-Z]{5}[0-9]{4}[A-Z]$', pan_number):
-        raise ValidationError('PAN number must be in the format ABCDE1234F.')
-
-def validate_gst_number(gst_number):
-    # GST number format: 15 characters, typically starts with state code (e.g., 27AAAAA0000A1Z5)
-    gst_number = gst_number.strip()
-    if not re.match(r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][A-Z0-9][Z][A-Z0-9]$', gst_number):
-        raise ValidationError('GST number is in invalid format.')
+from user_management.utils import validate_aadhar_number, validate_pan_number, validate_gst_number
 
 
 class CompanyDetail(models.Model):
