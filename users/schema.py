@@ -82,8 +82,8 @@ class Query(graphene.ObjectType):
         company_features = CompanyFeatures.objects.filter(company_id=company_id)
         formatted_features = [
             {
-                "feature_id": feature.feature_id.feature_id,  # Assuming `id` is the primary key
-                "feature_name": feature.feature_id.feature_name,  # Adjust according to your model's field names
+                "feature_id": feature.feature_id.feature_id,  
+                "feature_name": feature.feature_id.feature_name,  
                 "company_feature_status": feature.company_feature_status
             }
             for feature in company_features

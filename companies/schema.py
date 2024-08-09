@@ -96,69 +96,73 @@ class UpdateCompanyDetail(graphene.Mutation):
     error = graphene.String()
 
     class Arguments:
-        id = graphene.Int()
+        id = graphene.Int(required=True)
         company_code = graphene.String()
         company_name = graphene.String()
-        company_logo_path = graphene.String()
-        company_business_id = graphene.Int()
-        company_revenue_id = graphene.Int()
-        company_website = graphene.String()
+        company_logo = Upload()
         company_gstin = graphene.String()
         company_status = graphene.String()
-        feedback_flag = graphene.String()
-        company_dawn = graphene.String()
-        company_dusk = graphene.String()
-        company_timeslice = graphene.String()
-        bank_name = graphene.String()
-        bank_code = graphene.String()
+        company_dawn = graphene.Time()
+        company_dusk = graphene.Time()
+        company_timeslice = graphene.Time()
         country_id = graphene.Int()
-        merchant_id = graphene.String()
-        merchant_secret_key = graphene.String()
-        latitude = graphene.String()
-        longitude = graphene.String()
-        radius = graphene.String()
-        customer_app = graphene.String()
-        appointment_auto_confirm = graphene.Int()
         FSSAI = graphene.String()
+        aadhar_number = graphene.String()
+        pan = graphene.String()
+        company_address = graphene.String()
+        business_type = graphene.String()
 
     @classmethod
-    def mutate(cls, root, info, id, company_code, company_name, company_logo_path, company_business_id, 
-               company_revenue_id, company_website, company_gstin, company_status, feedback_flag, 
-               company_dawn, company_dusk, company_timeslice, bank_name, bank_code, country_id, 
-               merchant_id, merchant_secret_key, latitude, longitude, radius, customer_app, 
-               appointment_auto_confirm, FSSAI):
+    def mutate(cls, root, info, id, company_code=None, company_name=None, company_logo=None, 
+               company_gstin=None, company_status=None, company_dawn=None, company_dusk=None, 
+               company_timeslice=None, country_id=None, FSSAI=None, aadhar_number=None, pan=None, 
+               company_address=None, business_type=None):
         try:
-            country = Country.objects.get(pk=country_id)
             company_detail = CompanyDetail.objects.get(pk=id)
-        except Country.DoesNotExist:
-            return UpdateCompanyDetail(ok=False, error="Country with the given ID does not exist.")
         except CompanyDetail.DoesNotExist:
-            return UpdateCompanyDetail(ok=False, error="Company with the given ID does not exist.")        
-        company_detail.company_code = company_code
-        company_detail.company_name = company_name
-        company_detail.company_logo_path = company_logo_path
-        company_detail.company_business_id = company_business_id
-        company_detail.company_revenue_id = company_revenue_id
-        company_detail.company_website = company_website
-        company_detail.company_gstin = company_gstin
-        company_detail.company_status = company_status
-        company_detail.feedback_flag = feedback_flag
-        company_detail.company_dawn = company_dawn
-        company_detail.company_dusk = company_dusk
-        company_detail.company_timeslice = company_timeslice
-        company_detail.bank_name = bank_name
-        company_detail.bank_code = bank_code
-        company_detail.country_id = country
-        company_detail.merchant_id = merchant_id
-        company_detail.merchant_secret_key = merchant_secret_key
-        company_detail.latitude = latitude
-        company_detail.longitude = longitude
-        company_detail.radius = radius
-        company_detail.customer_app = customer_app
-        company_detail.appointment_auto_confirm = appointment_auto_confirm
-        company_detail.FSSAI = FSSAI
-        company_detail.save()
-        return UpdateCompanyDetail(ok=True, company_detail=company_detail)
+            return UpdateCompanyDetail(ok=False, error="Company with the given ID does not exist.")
+
+        if country_id:
+            try:
+                country = Country.objects.get(pk=country_id)
+                company_detail.country_id = country
+            except Country.DoesNotExist:
+                return UpdateCompanyDetail(ok=False, error="Country with the given ID does not exist.")
+
+        if company_code is not None:
+            company_detail.company_code = company_code
+        if company_name is not None:
+            company_detail.company_name = company_name
+        if company_logo is not None:
+            company_detail.company_logo = company_logo
+        if company_gstin is not None:
+            company_detail.company_gstin = company_gstin
+        if company_status is not None:
+            company_detail.company_status = company_status
+        if company_dawn is not None:
+            company_detail.company_dawn = company_dawn
+        if company_dusk is not None:
+            company_detail.company_dusk = company_dusk
+        if company_timeslice is not None:
+            company_detail.company_timeslice = company_timeslice
+        if FSSAI is not None:
+            company_detail.FSSAI = FSSAI
+        if aadhar_number is not None:
+            company_detail.aadhar_number = aadhar_number
+        if pan is not None:
+            company_detail.pan = pan
+        if company_address is not None:
+            company_detail.company_address = company_address
+        if business_type is not None:
+            company_detail.business_type = business_type
+
+        try:
+            company_detail.full_clean()
+            company_detail.save()
+            return UpdateCompanyDetail(ok=True, company_detail=company_detail)
+        except Exception as e:
+            error_messages = {field: messages[0] for field, messages in e.message_dict.items()}
+            return UpdateCompanyDetail(ok=False, error=error_messages)
 
 
 class DeleteCompanyDetail(graphene.Mutation):
@@ -166,14 +170,14 @@ class DeleteCompanyDetail(graphene.Mutation):
     error = graphene.String()
 
     class Arguments:
-        id = graphene.Int()
+        id = graphene.Int(required=True)
 
     @classmethod
     def mutate(cls, root, info, id):
         try:
             company_detail = CompanyDetail.objects.get(pk=id)
         except CompanyDetail.DoesNotExist:
-            return UpdateCompanyDetail(ok=False, error="Company with the given ID does not exist.")  
+            return DeleteCompanyDetail(ok=False, error="Company with the given ID does not exist.")
         company_detail.delete()
         return DeleteCompanyDetail(ok=True)
 
